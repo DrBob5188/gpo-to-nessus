@@ -32,7 +32,7 @@ Param (
 
     [Parameter(Mandatory = $false, HelpMessage = "Versioning of the audit file")]
     [string]
-    $AuditVersion = "1",
+    $AuditVersion = "2",
 
     [Parameter(Mandatory = $false, HelpMessage = "The file and folder path for the ADML temporary database")]
     [string]
@@ -208,13 +208,14 @@ function New-NessusAuditFile($adml_db, $output_file, $audit_version, $audit_desc
             if ($setting -match "([^:]*):(.*)") {
                 $value_type = "POLICY_$($matches[1])"
                 if ($matches[1] -eq "SZ") {
+                    $value_type = "POLICY_TEXT"
                     $value_data = "`"$($matches[2])`""
                 }
                 else {
                     $value_data = $matches[2]
                 }
             }
-            elseif ($setting -match "(DELETE|DELETEALLVALUES|CREATEKEYS)") {
+            elseif ($setting -match "(DELETE|DELETEALLVALUES|CREATEKEY)") {
                 Write-Status "Skipping $($reg_item) as the action is: $($matches[1])"
                 $counter = 0
                 continue
@@ -234,7 +235,7 @@ function New-NessusAuditFile($adml_db, $output_file, $audit_version, $audit_desc
             Add-Content $audit_file "`t`ttype:`t`t`tREGISTRY_SETTING"
             Add-Content $audit_file "`tdescription:`t`t$($description.Trim())"
             Add-Content $audit_file "`t`tvalue_type:`t`t$value_type"
-            Add-Content $audit_file "`t`tvalue_data`t`t$value_data"
+            Add-Content $audit_file "`t`tvalue_data:`t`t$value_data"
             Add-Content $audit_file "`t`treg_key:`t`t$reg_key"
             Add-Content $audit_file "`t`treg_item:`t`t$reg_item"
             Add-Content $audit_file $custom_item_end
